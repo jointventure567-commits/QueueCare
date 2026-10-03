@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QueueCare | Patient Flow</title>
+
+<style>
+:root {
+    --navy: #122b36;
+    --teal: #087f75;
+    --mint: #dbf5eb;
+    --bg: #f3f6f5;
+    --text: #19343f;
+    --muted: #71828b;
+    --line: #e4ebe8;
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+button, input { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button { cursor: pointer; transition: .2s; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button:hover:not(:disabled) { filter: brightness(.94); }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 3px solid #3cbbac; outline-offset: 3px; }
+
+.sidebar {
+    width: 220px;
+    position: fixed;
+    inset: 0 auto 0 0;
+    padding: 32px 22px;
+    background: var(--navy);
+    color: white;
+    display: flex;
+    flex-direction: column;
+}
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 23px;
+    font-weight: 750;
+    letter-spacing: -1px;
+}
+.logo {
+    display: grid;
+    place-items: center;
+    background: #9de5cc;
+    color: var(--navy);
+    border-radius: 12px;
+    width: 38px;
+    height: 38px;
+    font-size: 28px;
+}
+.sidebar small { color: #a7bdc5; }
+.workspace { margin: 42px 12px 15px; font-size: 10px; letter-spacing: 2px; }
+nav a {
+    display: block;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 7px;
+    color: #bfd0d5;
+    font-size: 14px;
+}
+nav a:first-child { background: #25444e; color: #c4ffe9; }
+nav a:hover { background: #25444e; }
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 24px;
+    border-top: 1px solid #35505a;
+    font-size: 13px;
+    line-height: 1.8;
+}
+main { margin-left: 220px; padding: 30px 38px; max-width: 1680px; }
+.topbar, .section-head, .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+.eyebrow {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.8px;
+    font-size: 10px;
+    font-weight: 700;
+}
+h1 { margin: 7px 0; font-size: 30px; letter-spacing: -1px; }
+h2 { margin: 0; font-size: 18px; letter-spacing: -.4px; }
+h3 { margin: 0; font-size: 15px; }
+p { color: var(--muted); font-size: 13px; line-height: 1.6; }
+.connection {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 30px;
+    padding: 10px 15px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+.hero {
+    margin-top: 25px;
+    border-radius: 19px;
+    background: var(--navy);
+    color: white;
+    padding: 27px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+.hero h2 { font-size: 25px; }
+.hero p { color: #b8d1d3; margin-bottom: 0; }
+.hero-label { color: #a7e4cc; font-size: 11px; margin-bottom: 10px; letter-spacing: 2px; }
+.hero-token {
+    background: #294650;
+    padding: 16px 24px;
+    border-radius: 14px;
+    text-align: center;
+    min-width: 120px;
+}
+.hero-token small { color: #bed3d6; font-size: 10px; letter-spacing: 1px; }
+.hero-token strong { display: block; font-size: 34px; color: #b8f3d9; }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 22px 0; }
+.stat, .card {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+}
+.stat { padding: 21px 24px; }
+.stat strong { display: block; font-size: 35px; margin: 9px 0 3px; letter-spacing: -1px; }
+.stat small { color: var(--muted); font-size: 12px; }
+.stat:nth-child(2) { background: #e6f4ee; border-color: #d3e9df; }
+.grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 22px; align-items: start; }
+.card { padding: 24px; min-width: 0; }
+.section-head { margin-bottom: 20px; }
+.badge { padding: 6px 10px; background: var(--mint); color: #17694f; border-radius: 20px; font-size: 11px; }
+label { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 650; }
+input {
+    width: 100%;
+    padding: 12px 14px;
+    background: #fafcfb;
+    border: 1px solid #dce5e1;
+    border-radius: 9px;
+    color: var(--text);
+    min-width: 0;
+}
+.field { margin-bottom: 18px; }
+.primary, .secondary {
+    border-radius: 9px;
+    padding: 12px 17px;
+    font-size: 13px;
+    font-weight: 650;
+}
+.primary { background: var(--teal); color: white; border: 1px solid var(--teal); }
+.secondary { background: white; color: var(--text); border: 1px solid #d9e4df; }
+.full { width: 100%; }
+.queue { max-height: 300px; overflow-y: auto; }
+.queue-item { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.token {
+    background: #eef5f2;
+    color: var(--teal);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-weight: 750;
+    flex-shrink: 0;
+}
+.queue-item small { display: block; color: var(--muted); margin-top: 4px; }
+.queue-item .badge { margin-left: auto; white-space: nowrap; }
+.actions { display: flex; gap: 10px; margin-top: 20px; }
+.actions button { flex: 1; }
+.empty { padding: 30px 10px; text-align: center; color: var(--muted); font-size: 13px; }
+.records { margin-top: 22px; }
+.search-form { display: flex; gap: 8px; max-width: 370px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap; }
+th { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; padding: 13px 10px; background: #f8faf9; }
+td { padding: 16px 10px; border-bottom: 1px solid #edf1ef; font-size: 13px; }
+.status { padding: 6px 10px; border-radius: 20px; font-size: 11px; background: #e7f4ee; color: #187753; }
+.status.called { background: #edf0fa; color: #55649b; }
+#searchResult { font-size: 13px; color: var(--teal); margin: 0 0 12px; }
+footer { color: var(--muted); font-size: 11px; padding-top: 23px; }
+#notice {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    max-width: min(420px, 90vw);
+    padding: 15px 22px;
+    background: var(--navy);
+    color: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px #122b3626;
+    z-index: 10;
+}
+#notice[hidden] { display: none; }
+@media(max-width: 1050px) {
+    .sidebar { width: 185px; padding: 25px 15px; }
+    main { margin-left: 185px; padding: 25px; }
+    .grid { grid-template-columns: 1fr; }
+    .records .section-head { align-items: stretch; flex-direction: column; }
+}
+@media(max-width: 650px) {
+    .sidebar { position: static; width: 100%; padding: 18px; }
+    .sidebar nav, .workspace, .sidebar-footer, .sidebar > small { display: none; }
+    main { margin: 0; padding: 18px; }
+    .topbar { align-items: flex-start; }
+    h1 { font-size: 25px; }
+    .connection { padding: 8px; font-size: 10px; }
+    .hero { padding: 20px; }
+    .hero h2 { font-size: 20px; }
+    .hero-token { padding: 12px; min-width: 85px; }
+    .stats { gap: 8px; }
+    .stat { padding: 15px 10px; }
+    .stat strong { font-size: 28px; }
+    .stat .eyebrow { letter-spacing: 0; }
+    .card { padding: 18px; }
+}
+</style>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+
+<body>
+<aside class="sidebar">
+    <div class="brand"><span class="logo">+</span>QueueCare</div>
+    <small style="margin:12px 0 0 49px">Care starts with clarity.</small>
+    <div class="workspace">WORKSPACE</div>
+    <nav aria-label="Main navigation">
+        <a href="#overview">◈ &nbsp; Overview</a>
+        <a href="#registration">＋ &nbsp; Registration</a>
+        <a href="#waiting">≡ &nbsp; Waiting queue</a>
+        <a href="#patients">▤ &nbsp; Patient records</a>
+    </nav>
+    <div class="sidebar-footer">
+        <strong>Reception workspace</strong><br>
+        <small>Patient flow management<br>Local workspace</small>
+    </div>
+</aside>
+
+<main id="overview">
+    <header class="topbar">
+        <div>
+            <div class="eyebrow">Reception / Overview</div>
+            <h1>Patient flow, simplified.</h1>
+            <p style="margin:0" id="date"></p>
+        </div>
+        <div class="connection" id="connection" role="status">Connecting…</div>
+    </header>
+
+    <section class="hero">
+        <div>
+            <div class="hero-label">A LITTLE LESS WAIT. A LOT MORE CARE.</div>
+            <h2>Keep every patient moving.</h2>
+            <p>Register arrivals, manage the queue, and call the next patient.</p>
+        </div>
+        <div class="hero-token">
+            <small>NEXT TOKEN</small>
+            <strong id="nextToken">—</strong>
+        </div>
+    </section>
+
+    <section class="stats" aria-label="Session statistics">
+        <div class="stat">
+            <div class="eyebrow">Registered</div>
+            <strong id="registered">—</strong>
+            <small>Saved records</small>
+        </div>
+        <div class="stat">
+            <div class="eyebrow">Waiting</div>
+            <strong id="waitingCount">—</strong>
+            <small>In the queue</small>
+        </div>
+        <div class="stat">
+            <div class="eyebrow">Called</div>
+            <strong id="called">—</strong>
+            <small>Taken from queue</small>
+        </div>
+    </section>
+
+    <div class="grid">
+        <section class="card" id="registration">
+            <div class="section-head">
+                <h2>New patient</h2>
+                <span class="badge">Registration</span>
+            </div>
+            <p>Enter patient details to generate a token automatically.</p>
+            <form id="registerForm">
+                <div class="field">
+                    <label for="patientName">Full name</label>
+                    <input id="patientName" placeholder="e.g. Anirudh Akshay"
+                           required maxlength="80" autocomplete="off">
+                </div>
+                <div class="field">
+                    <label for="patientAge">Age</label>
+                    <input id="patientAge" type="number" placeholder="Age in years"
+                           required min="0" max="120" step="1">
+                </div>
+                <button class="primary full" id="registerButton" disabled>
+                    + Register patient
+                </button>
+            </form>
+        </section>
+
+        <section class="card" id="waiting">
+            <div class="section-head">
+                <h2>Waiting queue</h2>
+                <span class="badge">Arrival order</span>
+            </div>
+            <div class="queue" id="queue">
+                <div class="empty">Connecting to the queue…</div>
+            </div>
+            <div class="actions">
+                <button class="primary" id="callButton" disabled>Call next →</button>
+                <button class="secondary" id="undoButton" disabled>↶ Undo call</button>
+            </div>
+        </section>
+    </div>
+
+    <section class="card records" id="patients">
+        <div class="section-head">
+            <h2>Patient directory</h2>
+            <form class="search-form" id="searchForm">
+                <input id="searchName" placeholder="Search exact name"
+                       aria-label="Search by exact patient name" required maxlength="80">
+                <button class="secondary">Search</button>
+            </form>
+        </div>
+        <p id="searchResult" role="status"></p>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Token</th><th>Patient</th><th>Age</th><th>Status</th></tr>
+                </thead>
+                <tbody id="patientRows">
+                    <tr><td colspan="4" class="empty">Loading records…</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <footer>QueueCare · Records are saved locally and restored after restart.</footer>
+</main>
+
+<div id="notice" role="status" hidden></div>
+
+<script>
+const $ = id => document.getElementById(id);
+let state = null;
+let online = false;
+let busy = false;
+let refreshing = false;
+let noticeTimer;
+
+// Escape patient text before inserting it into HTML.
+function escapeHTML(value) {
+    const element = document.createElement("span");
+    element.textContent = String(value);
+    return element.innerHTML;
+}
+
+function notify(message) {
+    $("notice").textContent = message;
+    $("notice").hidden = false;
+    clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(() => $("notice").hidden = true, 4500);
+}
+
+async function api(path, method = "GET", body) {
+    const options = { method };
+    if (body !== undefined) {
+        options.headers = { "Content-Type": "application/json" };
+        options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(path, options);
+    const data = await response.json();
+
+    if (!response.ok) {
+        const message = typeof data.detail === "string"
+            ? data.detail
+            : "Please check the information entered.";
+        throw new Error(message);
+    }
+
+    return data;
+}
+
+function updateButtons() {
+    $("registerButton").disabled = busy || !online;
+    $("callButton").disabled = busy || !online || !state?.stats.waiting;
+    $("undoButton").disabled = busy || !online || !state?.stats.called;
+}
+
+function render() {
+    $("registered").textContent = state.stats.registered;
+    $("waitingCount").textContent = state.stats.waiting;
+    $("called").textContent = state.stats.called;
+    $("nextToken").textContent = state.queue.length
+        ? String(state.queue[0].id).padStart(3, "0") : "—";
+
+    $("queue").innerHTML = state.queue.length
+        ? state.queue.map((patient, index) => `
+            <div class="queue-item">
+                <span class="token">${patient.id}</span>
+                <div>
+                    <h3>${escapeHTML(patient.name)}</h3>
+                    <small>Age ${patient.age} · Position ${index + 1}</small>
+                </div>
+                ${index === 0 ? '<span class="badge">Up next</span>' : ""}
+            </div>
+        `).join("")
+        : '<div class="empty">All clear. No patients waiting.</div>';
+
+    $("patientRows").innerHTML = state.patients.length
+        ? state.patients.map(patient => `
+            <tr>
+                <td><strong>#${String(patient.id).padStart(3, "0")}</strong></td>
+                <td>${escapeHTML(patient.name)}</td>
+                <td>${patient.age} years</td>
+                <td><span class="status ${patient.status === "Called" ? "called" : ""}">
+                    ${escapeHTML(patient.status)}
+                </span></td>
+            </tr>
+        `).join("")
+        : '<tr><td colspan="4" class="empty">Register your first patient to get started.</td></tr>';
+}
+
+async function refresh() {
+    if (refreshing) return;
+    refreshing = true;
+    try {
+        state = await api("/api/state");
+        online = true;
+        $("connection").textContent = "● Live · connected";
+        $("connection").style.color = "#087f75";
+        render();
+    } catch {
+        online = false;
+        $("connection").textContent = "● Offline · retrying";
+        $("connection").style.color = "#b64b43";
+    } finally {
+        refreshing = false;
+        updateButtons();
+    }
+}
+
+async function perform(path, body) {
+    if (busy) return false;
+    busy = true;
+    updateButtons();
+
+    try {
+        const result = await api(path, "POST", body);
+        notify(result.message.replace(/^OK /, ""));
+        await refresh();
+        return true;
+    } catch (error) {
+        notify(error.message);
+        return false;
+    } finally {
+        busy = false;
+        updateButtons();
+    }
+}
+
+$("registerForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    const name = $("patientName").value.trim();
+
+    if (!name) {
+        notify("Please enter a patient name.");
+        return;
+    }
+
+    const success = await perform("/api/patients", {
+        name,
+        age: Number($("patientAge").value)
+    });
+
+    if (success) {
+        $("registerForm").reset();
+        $("patientName").focus();
+    }
+});
+
+$("callButton").addEventListener("click", () => perform("/api/call"));
+$("undoButton").addEventListener("click", () => perform("/api/undo"));
+
+$("searchForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    $("searchResult").textContent = "Searching…";
+
+    try {
+        const name = encodeURIComponent($("searchName").value.trim());
+        const result = await api("/api/search?name=" + name);
+        const patient = result.patients[0];
+
+        $("searchResult").textContent =
+            `Found: Token #${patient.id} · ${patient.name} · Age ${patient.age}`;
+    } catch (error) {
+        $("searchResult").textContent = error.message;
+    }
+});
+
+$("date").textContent = new Date().toLocaleDateString("en-IN", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric"
+});
+
+// Fetch fresh C++ state after each action and every two seconds.
+async function poll() {
+    if (!busy) await refresh();
+    setTimeout(poll, 2000);
+}
+poll();
+</script>
+</body>
+</html>
