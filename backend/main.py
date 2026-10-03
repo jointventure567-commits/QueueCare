@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import json
 from contextlib import closing
@@ -13,7 +14,7 @@ from fastapi.responses import FileResponse
 
 
 ROOT = Path(__file__).resolve().parent.parent
-ENGINE_PATH = ROOT / "cpp" / "engine.exe"
+ENGINE_PATH = ROOT / "cpp" / ("engine.exe" if os.name == "nt" else "engine")
 
 engine = None
 engine_lock = Lock()
@@ -22,7 +23,8 @@ engine_lock = Lock()
 # Start C++ once when the server starts.
 # Stop it when the server closes.
 
-DB_PATH = ROOT / "queuecare.db"
+DB_PATH = Path(os.environ.get("SQLITE_PATH", str(ROOT / "queuecare.db")))
+DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
 def load_saved_actions():

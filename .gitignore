@@ -12,3 +12,6 @@ __pycache__/
 !.env.example
 backend/main_before_sqlite_*.py
 .vscode/
+
+backend/main_before_hosting_*.py
+cpp/engine
